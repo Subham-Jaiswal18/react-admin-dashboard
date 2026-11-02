@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { useLocation } from 'react-router-dom';
+import React, { useState, useRef, useEffect } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { pageTitles } from '../config/navigation';
 import {
   ChevronDown,
@@ -12,8 +12,26 @@ import {
 
 const Topbar = ({ showSidebar, setShowSidebar }) => {
   const location = useLocation();
+  const navigate = useNavigate();
   const pageTitle = pageTitles[location.pathname] || 'Dashboard';
   const [isOpen, setIsOpen] = useState(false);
+  const dropdownRef = useRef(null);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const handleNavigate = (path) => {
+    setIsOpen(false);
+    navigate(path);
+  };
 
   return (
     <div className="sticky top-0 z-40 flex h-20 items-center justify-between border-b border-slate-200 bg-white px-8 shadow-sm">
@@ -29,10 +47,10 @@ const Topbar = ({ showSidebar, setShowSidebar }) => {
       </div>
 
       {/* Right side: Profile section dropdown */}
-      <div className="relative">
+      <div className="relative" ref={dropdownRef}>
         <button
           onClick={() => setIsOpen(!isOpen)}
-          className="flex items-center gap-3 focus:outline-none hover:bg-gray-50 p-2 rounded-lg transition-colors"
+          className="flex items-center gap-3 focus:outline-none hover:bg-gray-50 p-2 rounded-lg transition-colors cursor-pointer"
         >
           {/* letter */}
           <div className="w-9 h-9 bg-indigo-600 text-white font-semibold rounded-full flex items-center justify-center">
@@ -54,22 +72,29 @@ const Topbar = ({ showSidebar, setShowSidebar }) => {
               <p className="text-sm font-medium text-gray-900">Admin User</p>
               <p className="text-xs text-gray-500 truncate">admin@gmail.com</p>
             </div>
-            <a
-              href="/profile"
-              className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+
+            <button
+              onClick={() => handleNavigate('/profile')}
+              className="w-full flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 text-left cursor-pointer"
             >
               <User size={16} /> Profile
-            </a>
-            <a
-              href="/settings"
-              className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+            </button>
+
+            <button
+              onClick={() => handleNavigate('/settings')}
+              className="w-full flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 text-left cursor-pointer"
             >
               <Settings size={16} /> Settings
-            </a>
+            </button>
+
             <div className="border-t border-gray-100 my-1"></div>
+
             <button
-              onClick={() => alert('Logged out!')}
-              className="w-full flex items-center gap-2 px-4 py-2 text-sm text-red-600 hover:bg-gray-50 text-left"
+              onClick={() => {
+                setIsOpen(false);
+                alert('Logged out!');
+              }}
+              className="w-full flex items-center gap-2 px-4 py-2 text-sm text-red-600 hover:bg-gray-50 text-left cursor-pointer"
             >
               <LogOut size={16} /> Logout
             </button>
